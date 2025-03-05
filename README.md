@@ -68,6 +68,5 @@ Jane Smith, 2025-03-05, 10:35:20
 This project is open-source and available under the MIT License.
 
 ---
-Feel free to modify this file to fit your project needs!
 
 
