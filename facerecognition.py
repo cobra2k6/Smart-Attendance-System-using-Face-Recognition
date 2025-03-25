@@ -4,7 +4,11 @@ import numpy as np
 from datetime import datetime, timedelta
 import os
 import csv
-import time  # Import time module for FPS calculation
+import time
+import pyttsx3  # Import pyttsx3 for text-to-speech
+
+# Initialize text-to-speech engine
+engine = pyttsx3.init()
 
 # Directory for student images
 image_directory = "student/"
@@ -39,9 +43,13 @@ attendance_interval = timedelta(seconds=3600)
 # Start video capture
 video_capture = cv2.VideoCapture(0)
 frame_processing_interval = 10
+
 frame_count = 0
 fps = 0
 prev_time = time.time()  # Initialize FPS timer
+
+# Set of all expected students
+all_students = set(known_face_names)
 
 try:
     with open(attendance_file, "a", newline="") as f:
@@ -86,8 +94,13 @@ try:
                             if name not in attendance_log:
                                 attendance_log.add(name)
                                 print(f"Attendance recorded: {name} at {current_time.strftime('%H:%M:%S')}")
+                                engine.say("Thank you")  # Say "Thank you" when attendance is recorded
+                                engine.runAndWait()
 
                             display_message = f"{name}: Present"
+                    else:
+                        engine.say("Unregistered")  # Say "Unregistered" if face is not recognized
+                        engine.runAndWait()
 
                     # Scale coordinates for bounding box
                     top, right, bottom, left = [coord * 4 for coord in face_location]
@@ -112,9 +125,24 @@ try:
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
-except Exception as e:
+except Exception as e: 
     print(f"Error: {e}")
 
 finally:
     video_capture.release()
     cv2.destroyAllWindows()
+
+    # Generate absent list
+    present_students = attendance_log
+    absent_students = all_students - present_students
+
+    # Print absent students
+    print("\nAbsent Students:")
+    for student in absent_students:
+        print(student)
+
+    # Optionally, save absent list to a file
+    with open("absent_students.txt", "w") as absent_file:
+        absent_file.write("Absent Students:\n")
+        for student in absent_students:
+            absent_file.write(f"{student}\n")
